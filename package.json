@@ -8,7 +8,10 @@
     "build": "astro build",
     "preview": "astro build && wrangler dev",
     "astro": "astro",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "setup:repo": "bash scripts/setup-repo.sh",
+    "build:push": "bash scripts/build-and-push.sh",
+    "cleanup": "rm -rf /tmp/* /var/tmp/* /root/.npm /root/.cache /root/.local /app/lost+found/* /app/dist 2>/dev/null || true && echo 'Cleanup complete!' && df -h / | tail -1"
   },
   "dependencies": {
     "@astrojs/cloudflare": "12.6.7",

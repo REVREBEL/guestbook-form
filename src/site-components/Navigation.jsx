@@ -23,7 +23,7 @@ export function Navigation(
         memoriesText = "Share a Memory",
 
         memoriesLink = {
-            href: "#"
+            href: "https://patricia-lanning.webflow.io/memory-journal"
         },
 
         homeLink = {
