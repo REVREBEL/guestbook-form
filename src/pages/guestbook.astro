@@ -1,0 +1,55 @@
+---
+/**
+ * Guestbook Demo Page
+ * 
+ * This page demonstrates the Guestbook button and form in action
+ */
+import MainLayout from '../layouts/main.astro';
+import { GuestbookButton } from '../components/GuestbookButton';
+---
+
+<MainLayout>
+  <div class="min-h-screen bg-background p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+      <div class="space-y-4">
+        <h1 class="text-4xl font-bold text-foreground font-heading">
+          Guestbook
+        </h1>
+        <p class="text-lg text-muted-foreground">
+          Sign our guestbook and share your memories with us!
+        </p>
+      </div>
+
+      <div class="bg-card p-8 rounded-lg border border-border">
+        <GuestbookButton 
+          client:only="react"
+          buttonText="Sign Guestbook"
+          collectionId="69383a09bbf502930bf620a3"
+        />
+      </div>
+
+      <div class="bg-muted p-6 rounded-lg">
+        <h2 class="text-2xl font-semibold mb-4 font-heading">How it works</h2>
+        <ol class="space-y-2 list-decimal list-inside text-muted-foreground">
+          <li>Click the "Sign Guestbook" button above</li>
+          <li>Fill out the form with your information</li>
+          <li>Submit to create a new entry in the Webflow CMS</li>
+          <li>Your entry will be saved and you'll see confirmation</li>
+        </ol>
+      </div>
+
+      <div class="bg-card p-6 rounded-lg border border-border">
+        <h2 class="text-2xl font-semibold mb-4 font-heading">Features</h2>
+        <ul class="space-y-2 list-disc list-inside text-muted-foreground">
+          <li>✅ Create new guestbook entries</li>
+          <li>✅ Update existing entries (pass itemId prop)</li>
+          <li>✅ Full validation with error messages</li>
+          <li>✅ Success confirmation with entry details</li>
+          <li>✅ Uses Webflow-generated form components</li>
+          <li>✅ Integrates with Webflow CMS via API</li>
+          <li>✅ External embed support for other pages</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</MainLayout>

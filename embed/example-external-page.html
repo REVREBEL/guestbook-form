@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>External Guestbook Embed Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 1rem;
+    }
+    .info {
+      background: #e3f2fd;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+      border-left: 4px solid #2196f3;
+    }
+    .warning {
+      background: #fff3cd;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+      border-left: 4px solid #ffc107;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    #guestbook-button {
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>External Guestbook Embed Example</h1>
+    
+    <div class="info">
+      <strong>ℹ️ Note:</strong> This is an example of how to embed the Guestbook button 
+      on an external page (outside of the Webflow Cloud app).
+    </div>
+
+    <div class="warning">
+      <strong>⚠️ Important:</strong> Before this works, you need to:
+      <ol style="margin: 0.5rem 0 0 1.5rem;">
+        <li>Build the <code>embed/guestbook-embed.tsx</code> file into a bundled JavaScript file</li>
+        <li>Host the bundled file on a CDN or your server</li>
+        <li>Replace <code>BUNDLED_SCRIPT_URL</code> below with the actual URL</li>
+        <li>Replace <code>YOUR_APP_BASE_URL</code> with your deployed Webflow Cloud app URL</li>
+      </ol>
+    </div>
+
+    <h2>Embedded Guestbook Button:</h2>
+    
+    <!-- Mount point for the guestbook button -->
+    <div id="guestbook-button"></div>
+
+    <!-- 
+      STEP 1: Include the bundled embed script
+      Replace this URL with your actual bundled script URL
+    -->
+    <script src="BUNDLED_SCRIPT_URL"></script>
+
+    <!-- 
+      STEP 2: Mount the button
+    -->
+    <script>
+      // Wait for script to load
+      document.addEventListener('DOMContentLoaded', function() {
+        const mountPoint = document.getElementById('guestbook-button');
+        
+        if (typeof mountGuestbookButton === 'function') {
+          // Mount the button with configuration
+          const instance = mountGuestbookButton(mountPoint, {
+            // Button text
+            buttonText: 'Sign Our Guestbook',
+            
+            // CMS Collection ID (Guestbook collection)
+            collectionId: '69383a09bbf502930bf620a3',
+            
+            // CRITICAL: Set this to your deployed Webflow Cloud app URL
+            // Example: 'https://your-site.webflow.io/your-app-path'
+            // or: 'https://your-domain.com/app'
+            baseUrl: 'YOUR_APP_BASE_URL',
+            
+            // Optional: Locale ID
+            // localeId: '...',
+            
+            // Optional: Item ID (for editing existing entries)
+            // itemId: '...',
+            
+            // Success callback
+            onSuccess: function(data) {
+              console.log('✅ Guestbook entry created:', data);
+              
+              // Show custom success message
+              alert('Thank you for signing our guestbook!\n\nEntry ID: ' + data.id);
+              
+              // Optional: Redirect or update UI
+              // window.location.href = '/thank-you';
+            },
+            
+            // Error callback
+            onError: function(error) {
+              console.error('❌ Error:', error);
+              alert('Something went wrong. Please try again later.');
+            }
+          });
+          
+          // Optional: You can unmount later if needed
+          // instance.unmount();
+          
+          // Optional: Update props dynamically
+          // instance.updateProps({ buttonText: 'New Text' });
+          
+        } else {
+          console.error('mountGuestbookButton function not found. Make sure the embed script is loaded.');
+        }
+      });
+    </script>
+
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ddd;">
+
+    <h2>How to Build the Embed Bundle</h2>
+    <p>You'll need to bundle the <code>embed/guestbook-embed.tsx</code> file into a standalone JavaScript file.</p>
+    
+    <h3>Option 1: Using Vite</h3>
+    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>// vite.config.embed.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    lib: {
+      entry: './embed/guestbook-embed.tsx',
+      name: 'GuestbookEmbed',
+      fileName: 'guestbook-embed',
+      formats: ['iife']
+    },
+    rollupOptions: {
+      external: [],
+      output: {
+        globals: {}
+      }
+    }
+  }
+});
+
+// Then run:
+// npx vite build --config vite.config.embed.js</code></pre>
+
+    <h3>Option 2: Using Webpack</h3>
+    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>// webpack.embed.config.js
+module.exports = {
+  entry: './embed/guestbook-embed.tsx',
+  output: {
+    filename: 'guestbook-embed.js',
+    library: 'GuestbookEmbed',
+    libraryTarget: 'umd'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader']
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js']
+  }
+};
+
+// Then run:
+// npx webpack --config webpack.embed.config.js</code></pre>
+
+    <h3>Deploy the Bundle</h3>
+    <p>After building, upload the bundled JavaScript file to:</p>
+    <ul>
+      <li>A CDN (like Cloudflare, AWS S3 + CloudFront, etc.)</li>
+      <li>Your own server</li>
+      <li>Webflow hosting (if available for custom scripts)</li>
+    </ul>
+
+    <h3>Set the baseUrl</h3>
+    <p>The <code>baseUrl</code> should point to your deployed Webflow Cloud app, for example:</p>
+    <ul>
+      <li><code>https://your-site.webflow.io/guestbook-app</code></li>
+      <li><code>https://yourdomain.com/app</code></li>
+    </ul>
+    <p>This is needed because the embed will make API calls to <code>{baseUrl}/api/cms/...</code></p>
+  </div>
+</body>
+</html>
