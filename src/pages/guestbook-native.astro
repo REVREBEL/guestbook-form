@@ -1,0 +1,120 @@
+---
+/**
+ * Native Guestbook Form Page
+ * 
+ * This page uses the Webflow-generated form component directly
+ * with native form submission (no React interception).
+ * 
+ * The form submits directly to /api/guestbook endpoint.
+ */
+import MainLayout from '../layouts/main.astro';
+import { baseUrl } from '../lib/base-url';
+
+// This will be rendered server-side and inject the proper form action
+const formAction = `${baseUrl}/api/guestbook`;
+const collectionId = '69383a09bbf502930bf620a3';
+---
+
+<MainLayout>
+  <div class="min-h-screen bg-background p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+      <div class="space-y-4">
+        <h1 class="text-4xl font-bold text-foreground font-heading">
+          Sign Our Guestbook
+        </h1>
+        <p class="text-lg text-muted-foreground">
+          Share your memories and thoughts with us!
+        </p>
+      </div>
+
+      <!-- Native Webflow Form (No React) -->
+      <div class="bg-card p-8 rounded-lg border border-border">
+        <div id="guestbook-form-container"></div>
+      </div>
+
+      <div class="bg-muted p-6 rounded-lg">
+        <h2 class="text-2xl font-semibold mb-4 font-heading">After Submission</h2>
+        <p class="text-muted-foreground">
+          You'll receive an email with your edit credentials:
+        </p>
+        <ul class="mt-4 space-y-2 list-disc list-inside text-muted-foreground">
+          <li>Email address</li>
+          <li>Slug (10-character code)</li>
+          <li>Edit code (6-character code)</li>
+        </ul>
+        <p class="mt-4 text-sm text-muted-foreground">
+          Save these credentials to edit your entry later!
+        </p>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<!-- Import Webflow components -->
+<script>
+  import { createRoot } from 'react-dom/client';
+  import React from 'react';
+  import { DevLinkProvider } from '../site-components/DevLinkProvider';
+  import { GuestbookForm } from '../site-components/GuestbookForm';
+  import { baseUrl } from '../lib/base-url';
+
+  const container = document.getElementById('guestbook-form-container');
+  if (container) {
+    const root = createRoot(container);
+    
+    root.render(
+      React.createElement(DevLinkProvider, null,
+        React.createElement(GuestbookForm, {
+          guestbookCollectionIdCollectionIdVariable: '69383a09bbf502930bf620a3',
+          buttonLabelText: 'Sign Guestbook',
+          formComponentRuntimeProps: {
+            // This won't work - action is hardcoded in Devlink component
+            // We'll need to fix it with JavaScript after render
+          }
+        })
+      )
+    );
+
+    // Fix the form action after React renders
+    setTimeout(() => {
+      const form = document.getElementById('wf-form-Guestbook-Form') as HTMLFormElement;
+      if (form) {
+        // Override the hardcoded action
+        form.action = `${baseUrl}/api/guestbook`;
+        form.method = 'post';
+        
+        console.log('Form configured:', {
+          action: form.action,
+          method: form.method
+        });
+      }
+    }, 100);
+  }
+</script>
+
+<style>
+  /* Fix for embedded CSS issues */
+  #guestbook-form-container label {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Prevent blue color on completed fields */
+  #guestbook-form-container input:valid,
+  #guestbook-form-container textarea:valid,
+  #guestbook-form-container select:valid {
+    color: inherit !important;
+    border-color: var(--input) !important;
+  }
+
+  /* Fix dropdown behavior */
+  #guestbook-form-container select {
+    position: relative !important;
+  }
+
+  #guestbook-form-container select option {
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+  }
+</style>

@@ -7,7 +7,7 @@ export function Navigation(
         as: _Component = _Builtin.Block,
 
         guestbookLink = {
-            href: "/memory-journal/guestbook"
+            href: "https://patricia-lanning.webflow.io/guestbook"
         },
 
         recipesLink = {

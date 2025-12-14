@@ -1,156 +1,145 @@
-# 🎯 Embedding the Guestbook Button on Webflow Pages
+# Guestbook Embed Instructions
 
-There are **two ways** to add the guestbook button to your Webflow site pages:
+## Overview
 
----
+This embed allows you to add the Guestbook button to any external webpage (including Webflow hosted pages). When clicked, it opens a modal with the full guestbook form.
 
-## ✅ **Method 1: iframe Embed (Simplest - Recommended)**
+## Files
 
-This works immediately without any build step.
+- `guestbook-embed.tsx` - The React component that renders the button and modal
+- `vite.embed.config.ts` - Build configuration for the standalone bundle
+- `../public/guestbook-embed.iife.js` - The compiled JavaScript bundle (auto-generated)
 
-### Steps:
+## Important: CSS Handling
 
-1. **Open your Webflow page** in the Designer
-2. **Add an Embed element** where you want the button
-3. **Paste this code**:
+**DO NOT import CSS in the embed component!**
 
-```html
-<iframe 
-  src="https://patricia-lanning.webflow.io/guestbook-form/embed" 
-  style="border:none; width:100%; height:60px; overflow:visible;"
-  scrolling="no"
-  title="Sign Guestbook"
-></iframe>
+The Devlink components (`GuestbookFormButton`, `GuestbookModal`, etc.) already include their own CSS through `src/site-components/global.css`. Importing CSS again in the embed causes:
+- Style duplication
+- Rendering issues
+- Form layout problems
+
+The embed component should **only** import React components, not any CSS files.
+
+## Building the Embed
+
+```bash
+npm run build:embed
 ```
 
-4. **Publish** your site
+This generates `public/guestbook-embed.iife.js` which can be embedded on any page.
 
-### Pros:
-- ✅ No build process needed
-- ✅ Works immediately
-- ✅ Isolated styles (won't conflict with your page)
-- ✅ Automatic updates when you deploy changes
+## Usage on External Pages
 
-### Cons:
-- ⚠️ Modal opens inside iframe (might need height adjustment)
-- ⚠️ Small layout limitations
+### 1. Add the Script Tag
 
-### Adjustments:
-
-If the modal gets cut off, you can increase the iframe height when the button is clicked:
+Add this to your HTML page (before the closing `</body>` tag):
 
 ```html
-<iframe 
-  id="guestbook-iframe"
-  src="https://patricia-lanning.webflow.io/guestbook-form/embed" 
-  style="border:none; width:100%; height:60px; transition: height 0.3s;"
-  scrolling="no"
-  title="Sign Guestbook"
-></iframe>
+<script src="https://your-domain.com/guestbook-form/guestbook-embed.iife.js"></script>
 ```
 
----
+### 2. Add a Container Element
 
-## 🔧 **Method 2: Direct Component Embed (Advanced)**
-
-This requires building a standalone JavaScript bundle.
-
-### Steps:
-
-1. **Build the embed bundle** (requires Node.js setup):
-   
-   ```bash
-   # Install dependencies
-   npm install
-   
-   # Build the embed
-   npm run build:embed
-   ```
-
-2. **Upload the bundle** to your site's hosting (or use the Webflow Cloud URL)
-
-3. **Add this code** to your Webflow page embed:
+Add a div where you want the button to appear:
 
 ```html
 <div id="guestbook-button"></div>
-<script src="https://patricia-lanning.webflow.io/guestbook-form/dist/guestbook-embed.js"></script>
-<script>
-  window.mountGuestbookButton(
-    document.getElementById('guestbook-button'),
-    {
-      buttonText: 'Sign Our Guestbook',
-      baseUrl: 'https://patricia-lanning.webflow.io/guestbook-form'
-    }
-  );
-</script>
 ```
 
-### Pros:
-- ✅ Modal appears on top of page (better UX)
-- ✅ More flexible styling options
-- ✅ Full integration with page
+### 3. Initialize the Component
 
-### Cons:
-- ⚠️ Requires build process
-- ⚠️ More complex setup
-- ⚠️ Potential style conflicts with your site
+The script will automatically render into any element with `id="guestbook-button"`.
 
----
+## Complete Example
 
-## 📝 **Quick Comparison**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Page</title>
+</head>
+<body>
+  <h1>Welcome to my page</h1>
+  
+  <!-- Guestbook button container -->
+  <div id="guestbook-button"></div>
+  
+  <!-- Guestbook embed script -->
+  <script src="https://your-domain.com/guestbook-form/guestbook-embed.iife.js"></script>
+</body>
+</html>
+```
 
-| Feature | iframe Embed | Direct Embed |
-|---------|--------------|--------------|
-| Setup Time | 30 seconds | 15+ minutes |
-| Build Required | No | Yes |
-| Style Isolation | Yes | No |
-| Modal Position | Inside iframe | On page |
-| Best For | Quick setup | Advanced customization |
+## Using on Webflow Pages
 
----
+### Option 1: Custom Code Embed
 
-## 🚀 **Recommended Approach**
+1. Add an **Embed** element to your Webflow page
+2. Paste this code:
 
-**Start with Method 1 (iframe)** - it works immediately and is perfect for most use cases.
+```html
+<div id="guestbook-button"></div>
+<script src="https://your-domain.com/guestbook-form/guestbook-embed.iife.js"></script>
+```
 
-Only move to Method 2 if you need:
-- Modal to appear above page content
-- Deep integration with your site's JS
-- Custom styling that conflicts with iframe
+### Option 2: Page Settings
 
----
+Add to your page's **Before `</body>` tag** custom code:
 
-## 🆘 **Troubleshooting**
+```html
+<div id="guestbook-button"></div>
+<script src="https://your-domain.com/guestbook-form/guestbook-embed.iife.js"></script>
+```
 
-### iframe is too small
-Increase the height: `height:80px` or `height:100px`
+## Configuration
 
-### Modal is cut off
-The iframe needs to expand. Add JavaScript to resize it when the button is clicked.
+The embed automatically uses:
+- **Collection ID**: From `GUESTBOOK_COLLECTION_ID` environment variable (baked into the build)
+- **Base URL**: Determined by the script's location
+
+No additional configuration needed!
+
+## Troubleshooting
 
 ### Button doesn't appear
-1. Check that the app is deployed and accessible at `/guestbook-form/embed`
-2. Check browser console for errors
-3. Ensure your API token is set in environment variables
+- Check browser console for JavaScript errors
+- Verify the script URL is correct and accessible
+- Make sure the container div exists: `<div id="guestbook-button"></div>`
 
-### "mountGuestbookButton is not defined"
-This means you're trying Method 2 without building the bundle first. Either:
-- Use Method 1 (iframe) instead
-- Run `npm run build:embed` to create the bundle
+### Modal doesn't open or renders incorrectly
+- This is usually caused by CSS conflicts
+- **Solution**: Make sure NO CSS is imported in `guestbook-embed.tsx`
+- The Devlink components include their own styles automatically
+
+### Styles look wrong
+- Check if parent page has CSS that conflicts with the modal
+- The modal uses Radix UI Dialog with Portal (renders directly into `document.body`)
+- Ensure no global CSS is overriding `.Dialog` or `[data-radix-*]` attributes
+
+### Form doesn't submit
+- Check browser console for API errors
+- Verify your `WEBFLOW_CMS_SITE_API_TOKEN` is set correctly
+- Check Network tab for failed API requests to `/api/cms/...`
+
+## Development
+
+When developing the embed:
+
+1. Make changes to `embed/guestbook-embed.tsx`
+2. Rebuild: `npm run build:embed`
+3. Test by refreshing the page with the embed script
+4. Check console for any errors
+
+**Remember**: Never import CSS files in the embed component!
+
+## Security Notes
+
+- The API token stays server-side (never exposed in the bundle)
+- The collection ID is baked into the build (public but not sensitive)
+- All CMS operations go through your app's API routes
+- The embed only renders UI - all data operations are server-side
 
 ---
 
-## ✅ **Success Checklist**
-
-- [ ] App is deployed to Webflow Cloud at `/guestbook-form/`
-- [ ] Environment variable `GUESTBOOK_COLLECTION_ID` is set
-- [ ] Environment variable `WEBFLOW_CMS_SITE_API_TOKEN` is set
-- [ ] `/guestbook-form/embed` page loads in browser
-- [ ] iframe code is added to Webflow page
-- [ ] Page is published
-- [ ] Button appears and clicks open modal
-- [ ] Form submits successfully to CMS
-
----
-
-**Need help?** Check the main [GUESTBOOK-INDEX.md](../GUESTBOOK-INDEX.md) documentation.
+**Key Takeaway**: The embed brings **only JavaScript logic**, not CSS. The Devlink components handle their own styling.
