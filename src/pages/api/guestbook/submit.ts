@@ -9,8 +9,13 @@ import type { APIRoute } from 'astro';
 import { WebflowClient } from 'webflow-api';
 
 export const POST: APIRoute = async ({ request, locals, redirect }) => {
-  // Get API token
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
+  // ✅ USE THE WRITE TOKEN FIRST, FALL BACK TO READ TOKEN
+  const token = 
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN_WRITE || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN_WRITE ||
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
+    
   if (!token) {
     return new Response('Missing API token', { status: 500 });
   }

@@ -5,29 +5,6 @@
  * 
  * This endpoint receives form submissions directly from the Webflow form
  * in the Designer, processes the data, and submits it to the Webflow CMS.
- * 
- * FIELD MAPPING RULES:
- * ---------------------
- * 1. full_name → "name" (required CMS field) AND "first-name" (custom field)
- * 2. edit-code → Auto-generated 6-character alphanumeric code
- * 3. slug → Auto-generated 10-character alphanumeric code
- * 4. active → Always set to true on creation
- * 5. date_added → Current timestamp
- * 6. All other fields → One-to-one mapping with hyphenation
- * 
- * EDIT FUNCTIONALITY:
- * -------------------
- * Users receive an email after submission containing:
- * - Email address
- * - Slug
- * - Edit code
- * 
- * To edit their entry later, users must provide all three values:
- * - email (matches email-address field)
- * - slug (unique identifier)
- * - edit-code (secret code)
- * 
- * All three must match to unlock edit access.
  */
 
 import type { APIRoute } from 'astro';
@@ -83,19 +60,19 @@ function mapFormDataToCMS(formData: FormData, isUpdate: boolean = false) {
 
   // One-to-one field mappings (optional fields)
   if (location) {
-    fieldData['location'] = location; // guestbook_location → location
+    fieldData['location'] = location;
   }
   
   if (firstMet) {
-    fieldData['memory'] = firstMet; // guestbook_first_met → memory
+    fieldData['memory'] = firstMet;
   }
   
   if (relationship) {
-    fieldData['tag-1'] = relationship; // guestbook_relationship → tag-1
+    fieldData['tag-1'] = relationship;
   }
   
   if (message) {
-    fieldData['message'] = message; // guestbook_message → message
+    fieldData['message'] = message;
   }
 
   return {
@@ -117,12 +94,10 @@ async function verifyEditCredentials(
   editCode: string
 ): Promise<string | null> {
   try {
-    // List all live items (we'll need to filter client-side since API doesn't support all our filters)
     const response = await client.collections.items.listItemsLive(collectionId, {
       limit: 100
     });
 
-    // Find matching item
     const matchingItem = response.items?.find((item: any) => {
       const fieldData = item.fieldData || {};
       return (
@@ -142,12 +117,16 @@ async function verifyEditCredentials(
 /**
  * POST handler for form submissions
  */
-export const POST: APIRoute = async ({ request, locals, redirect }) => {
-  // Get API token from environment
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
+export const POST: APIRoute = async ({ request, locals }) => {
+  // ✅ USE THE WRITE TOKEN
+  const token = 
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN_WRITE || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN_WRITE ||
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
   
   if (!token) {
-    console.error('Missing WEBFLOW_CMS_SITE_API_TOKEN');
+    console.error('Missing WEBFLOW_CMS_SITE_API_TOKEN_WRITE');
     return new Response(JSON.stringify({ 
       error: 'Server configuration error' 
     }), { 
@@ -191,14 +170,13 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
       });
     }
 
-    // Check if this is an edit request (has edit credentials)
+    // Check if this is an edit request
     const editSlug = formData.get('edit_slug') as string;
     const editCode = formData.get('edit_code') as string;
     
     let itemId: string | null = null;
     let isUpdate = false;
 
-    // If edit credentials provided, verify them
     if (editSlug && editCode) {
       itemId = await verifyEditCredentials(client, collectionId, email, editSlug, editCode);
       
@@ -212,7 +190,6 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
       }
       
       isUpdate = true;
-      // Preserve the existing slug and edit code for updates
       formData.set('slug', editSlug);
       formData.set('edit_code', editCode);
     }
@@ -223,21 +200,10 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
     // Submit to Webflow CMS
     let result;
     if (isUpdate && itemId) {
-      // Update existing item
       result = await client.collections.items.updateItem(collectionId, itemId, cmsPayload);
     } else {
-      // Create new item
       result = await client.collections.items.createItem(collectionId, cmsPayload);
     }
-
-    // TODO: Send email with edit credentials
-    // Email should contain:
-    // - Email: cmsPayload.fieldData['email-address']
-    // - Slug: cmsPayload.fieldData['slug']
-    // - Edit Code: cmsPayload.fieldData['edit-code']
-    // 
-    // Implementation note: Add email service integration here
-    // (e.g., SendGrid, Mailgun, Resend, etc.)
 
     // Return success response
     return new Response(JSON.stringify({ 
@@ -247,7 +213,6 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
         id: result.id,
         slug: cmsPayload.fieldData.slug,
         editCode: cmsPayload.fieldData['edit-code'],
-        // Don't expose email in response for security
       }
     }), { 
       status: 200,

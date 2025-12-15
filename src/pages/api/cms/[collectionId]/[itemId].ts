@@ -9,11 +9,16 @@ import type { APIRoute } from 'astro';
 import { WebflowClient } from 'webflow-api';
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
+  // ✅ USE THE WRITE TOKEN FIRST, FALL BACK TO READ TOKEN
+  const token = 
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN_WRITE || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN_WRITE ||
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
   
   if (!token) {
     return new Response(
-      JSON.stringify({ error: 'Missing WEBFLOW_CMS_SITE_API_TOKEN' }), 
+      JSON.stringify({ error: 'Missing WEBFLOW_CMS_SITE_API_TOKEN_WRITE' }), 
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -71,7 +76,11 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 };
 
 export const GET: APIRoute = async ({ params, locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
+  // ✅ READ operations can use the read token
+  const token = 
+    locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || 
+    import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN;
+    
   if (!token) return new Response('Missing token', { status: 500 });
 
   const baseUrl = locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
